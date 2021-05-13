@@ -1,0 +1,4 @@
+---
+# vars file for mapreduce-tasktracker
+
+jtport: 9002

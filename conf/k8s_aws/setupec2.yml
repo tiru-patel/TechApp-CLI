@@ -1,0 +1,10 @@
+- hosts: localhost 
+  roles: 
+    - name: provision ec2 instances 
+      role: /root/menu/roles/tiru_patel.provisionec2
+
+- hosts: localhost 
+  tasks: 
+    - name: pausing playbook for 2 min 
+      pause: 
+        minutes: 2

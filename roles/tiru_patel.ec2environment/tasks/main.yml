@@ -1,0 +1,195 @@
+---
+# tasks file for ec2environment
+
+- name: creating vpc 
+  ec2_vpc_net: 
+    name: "{{ vpc_name }}"
+    cidr_block: "{{ vpc_cidr }}"
+    region: "{{ region }}"
+    state: present 
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+  register: vpc 
+
+- name: associating subnet to a VPC 
+  ec2_vpc_subnet: 
+    state: present 
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
+    cidr: "{{ subnet_cidr }}"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    map_public: yes 
+    resource_tags: 
+      Name: "{{ subnet_name }}"
+  register: subnet 
+
+- name: creating igw 
+  ec2_vpc_igw: 
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    state: present 
+    tags: 
+      Name: "{{ igw_name }}"
+  register: igw 
+
+- name: routing igw 
+  ec2_vpc_route_table: 
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    subnets: 
+      - "{{ subnet.subnet.id }}"
+    routes: 
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ igw.gateway_id }}"
+    tags: 
+      Name: "{{ route_name }}"
+
+- name: creating sg - allowing all traffic 
+  ec2_group: 
+    name: hdfs-mapred-sg 
+    description: "hdfs map-reduce cluster security group"
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    rules: 
+      - proto: all  
+        cidr_ip: 0.0.0.0/0
+    rules_egress: 
+      - proto: all 
+        cidr_ip: 0.0.0.0/0
+  register: sg 
+
+- name: launch ec2 instances - hdfs namenode
+  ec2:
+    key_name: ansible
+    instance_type: t2.micro
+    image: ami-06c97162f8f6a67fc 
+    wait: yes
+    count: 1
+    vpc_subnet_id: "{{ subnet.subnet.id }}"
+    state: present
+    group_id: "{{ sg.group_id }}"
+    region: "{{ region }}"
+    assign_public_ip: yes
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    wait_timeout: 600
+    instance_tags:
+      Name: "{{ nntag }}"
+  register: nn
+
+- name: launch ec2 instances - hdfs datanode 
+  ec2:
+    key_name: ansible
+    instance_type: t2.micro
+    image: ami-06c97162f8f6a67fc
+    wait: yes
+    count: "{{ dncount }}"
+    vpc_subnet_id: "{{ subnet.subnet.id }}"
+    state: present
+    group_id: "{{ sg.group_id }}"
+    region: "{{ region }}"
+    assign_public_ip: yes
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    wait_timeout: 600
+    instance_tags:
+      Name: "{{ dntag }}"
+  register: dn
+
+- name: launch ec2 instance - mapreduce jobtracker
+  ec2:
+    key_name: ansible
+    instance_type: t2.micro
+    image: ami-06c97162f8f6a67fc
+    wait: yes
+    count: 1
+    vpc_subnet_id: "{{ subnet.subnet.id }}"
+    state: present
+    group_id: "{{ sg.group_id }}"
+    region: "{{ region }}"
+    assign_public_ip: yes
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    wait_timeout: 600
+    instance_tags:
+      Name: "{{ jttag }}"
+  register: jt 
+
+- name: launch  ec2 instances - mapreduce tasktracker
+  ec2:
+    key_name: ansible
+    instance_type: t2.micro
+    image: ami-06c97162f8f6a67fc
+    wait: yes
+    count: "{{ ttcount }}"
+    vpc_subnet_id: "{{ subnet.subnet.id }}"
+    state: present
+    group_id: "{{ sg.group_id }}"
+    region: "{{ region }}"
+    assign_public_ip: yes
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    wait_timeout: 600
+    instance_tags:
+      Name: "{{ tttag }}"
+  register: tt
+
+- name: delete inventory if already exists 
+  command: rm -rf "{{ inv_path }}"
+  ignore_errors: yes 
+
+- name: creating invenotry 
+  command: touch "{{ inv_path }}"
+
+- name: updating inventory - namenode
+  blockinfile: 
+    path: "{{ inv_path }}"
+    marker: "# ANSIBLE MANAGED BLOCK FOR HADOOP NAME NODE {mark}"
+    block: |
+            [hdfsnn]
+            {{ nn.instances.0.public_ip }} ansible_user=ec2-user ansible_connection=ssh
+
+- name: updating inventory - datanode
+  blockinfile:
+    path: "{{ inv_path }}"
+    marker: "# ANSIBLE MANAGED BLOCK FOR HADOOP DATA NODE {mark}"
+    block: |
+            [hdfsdn]
+            {{ dn.instances.0.public_ip }} ansible_user=ec2-user  ansible_connection=ssh
+            {{ dn.instances.1.public_ip }} ansible_user=ec2-user  ansible_connection=ssh
+            {{ dn.instances.2.public_ip }} ansible_user=ec2-user  ansible_connection=ssh
+
+- name: updating inventory - jobtracker
+  blockinfile: 
+    path: "{{ inv_path }}"
+    marker: "# ANSIBLE MANAGED BLOCK FOR HADOOP JOBTRACKER  NODE {mark}"
+    block: |
+            [mapredjt]
+            {{ jt.instances.0.public_ip }} ansible_user=ec2-user ansible_connection=ssh
+
+- name: updating inventory - tasktracker
+  blockinfile:
+    path: "{{ inv_path }}"
+    marker: "# ANSIBLE MANAGED BLOCK FOR HADOOP TASKTRACKER NODE {mark}"
+    block: |
+            [mapredtt]
+            {{ tt.instances.0.public_ip }} ansible_user=ec2-user ansible_connection=ssh
+            {{ tt.instances.1.public_ip }} ansible_user=ec2-user ansible_connection=ssh
+            {{ tt.instances.2.public_ip }} ansible_user=ec2-user ansible_connection=ssh
+
+- name: wait for ssh connection in all nodes 
+  wait_for_connection: 
+    delay: 60
+    timeout: 300
+
+- name: cloud environment for hdfs-mapreduce cluster done 
+  debug: 
+    msg: "AWS Cloud setup for HDFS-MAPREDUCE Cluster is done!"
+

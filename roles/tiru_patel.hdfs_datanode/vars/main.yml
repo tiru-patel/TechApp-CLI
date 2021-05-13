@@ -1,0 +1,5 @@
+---
+# vars file for hdfs-datanode
+#
+dn_directory_name: "/dn"
+nnport: 9001

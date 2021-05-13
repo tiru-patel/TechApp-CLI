@@ -1,0 +1,80 @@
+---
+# tasks file for k8s_master
+
+- name: install docker
+  package: 
+    name: docker
+    state: present 
+
+- name: start and enable docker service
+  service:
+    name: docker
+    state: started 
+    enabled: yes
+
+- name: configure yum repo for kubernetes 
+  copy: 
+    src: /root/menu/roles/tiru_patel.k8s_master/files/kubernetes.repo 
+    dest: /etc/yum.repos.d/kubernetes.repo 
+
+- name: install kubeadm kubelet and kubectl 
+  command: yum install kubeadm kubelet kubectl -y 
+
+- name: start and enable kubelet service 
+  service: 
+    name: kubelet 
+    state: started 
+    enabled: yes 
+
+- name: pull k8s configuration images 
+  shell: kubeadm config images pull 
+  changed_when: false 
+  ignore_errors: yes
+
+- name: configure docker cgroup 
+  copy: 
+    src: /root/menu/roles/tiru_patel.k8s_master/files/daemon.json 
+    dest: /etc/docker/daemon.json 
+
+- name: restart docker service 
+  service: 
+    name: docker
+    state: restarted 
+
+- name: install iproute-tc for traffic control 
+  package: 
+    name: iproute-tc 
+    state: present 
+
+- name: configure iptables 
+  copy: 
+    src: /root/menu/roles/tiru_patel.k8s_master/files/k8s.conf 
+    dest: /etc/sysctl.d/k8s.conf 
+
+- name: restart service
+  shell: sudo sysctl --system 
+  
+- name: Initialize Master 
+  shell: kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem 
+  ignore_errors: yes
+  register: init 
+
+- name: configure Master as a client - phase1
+  shell: mkdir -p $HOME/.kube 
+- name: configure Master as a client - phase2 
+  shell: sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config 
+- name: configure Master as a client - phase3
+  shell: sudo chown $(id -u):$(id -g) $HOME/.kube/config 
+
+- name: Running Flannel 
+  shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+- name: generating token 
+  shell: kubeadm token create --print-join-command 
+  register: token 
+  ignore_errors: yes 
+ 
+- name: You can copy the token to JOIN master 
+  debug: 
+    var: token.stdout_lines 
+  register: token 

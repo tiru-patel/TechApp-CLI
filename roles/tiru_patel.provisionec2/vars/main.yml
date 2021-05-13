@@ -1,0 +1,28 @@
+---
+# vars file for provisionEC2
+inv_path: "/root/menu/inventory/k8s-cluster.txt"
+
+aws_access_key: "<Provide You Access Key Here>"
+aws_secret_key: "<Provide your Secret key here>"
+region: "ap-south-1"
+
+# VPC 
+vpc_name: "k8s-cluster vpc"
+vpc_cidr: "10.0.0.0/16"
+
+# Subnet 
+subnet_name: "subnet1"
+subnet_cidr: "10.0.1.0/24"
+
+# IGW 
+igw_name: "k8s-cluster IGW"
+route_name: "k8s-cluster-route"
+sg_name: "k8s-cluster-sg"
+
+# OS Tags 
+mastag: "k8s_master"
+slv1tag: "k8s_slave1"
+slv2tag: "k8s_slave2"
+
+
+

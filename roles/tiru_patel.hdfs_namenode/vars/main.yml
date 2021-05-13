@@ -1,0 +1,7 @@
+---
+# vars file for hdfs-cluster
+#
+
+nnport: 9001
+nn_directory_name: "/nn"
+

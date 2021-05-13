@@ -1,0 +1,34 @@
+---
+# tasks file for hdfs-cluster
+#
+- name: creating directory in namenode 
+  file: 
+    state: directory 
+    path: "{{ nn_directory_name }}" 
+
+- name: configuring namenode - hdfs-site.xml file 
+  template: 
+    src: templates/nn-hdfs-site.xml.j2
+    dest: /etc/hadoop/hdfs-site.xml 
+
+- name: configuring namenode - core-site.xml file 
+  template: 
+    src: templates/nn-core-site.xml.j2 
+    dest: /etc/hadoop/core-site.xml 
+
+- name: stop service if already running
+  shell: hadoop-daemon.sh stop namenode
+  ignore_errors: yes
+
+- name: formating namenode  
+  shell: "echo Y | hadoop namenode -format"
+
+- name: starting namenode service
+  shell: hadoop-daemon.sh start namenode
+ 
+- name: namenode configured 
+  debug: 
+    msg: "Namenode is successfully configured."
+
+
+

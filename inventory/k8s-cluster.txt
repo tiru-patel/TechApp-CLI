@@ -1,0 +1,9 @@
+# ANSIBLE MANAGED BLOCK FOR K8S MASTER NODE BEGIN
+[k8s_master]
+13.127.39.31 ansible_user=ec2-user ansible_connection=ssh 
+# ANSIBLE MANAGED BLOCK FOR K8S MASTER NODE END
+# ANSIBLE MANAGED BLOCK FOR K8S SLAVE NODES BEGIN
+[k8s_slave]
+13.235.31.35 ansible_user=ec2-user ansible_connection=ssh
+13.232.214.17 ansible_user=ec2-user ansible_connection=ssh
+# ANSIBLE MANAGED BLOCK FOR K8S SLAVE NODES END

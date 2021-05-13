@@ -1,0 +1,19 @@
+- hosts: k8s_master
+  roles: 
+    - name: configure Master node
+      role: /root/menu/roles/tiru_patel.k8s_master
+
+- hosts: k8s_slave
+  vars_prompt: 
+    - name: "master_token"
+      prompt: "Please enter token to JOIN master node : "
+      private: no
+
+  roles: 
+    - name: configure slave node   
+      role: /root/menu/roles/tiru_patel.k8s_slaves
+
+- hosts: k8s_master 
+  roles: 
+    - name: setting up wordpress site 
+      role: /root/menu/roles/tiru_patel.wordpress_sql

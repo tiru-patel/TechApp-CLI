@@ -1,0 +1,4 @@
+---
+# vars file for mapreduce-jobtracker
+nnport: 9001
+jtport: 9002

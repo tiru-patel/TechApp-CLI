@@ -1,0 +1,17 @@
+---
+# tasks file for mapreduce-tasktracker
+
+- name: configure mapreduce - tasktracker 
+  template: 
+    src: templates/tt-mapred-site.xml.j2 
+    dest: /etc/hadoop/mapred-site.xml
+ 
+- name: stop tasktracker service if already running 
+  shell: hadoop-daemon.sh stop tasktracker 
+
+- name: start tasktracker service 
+  shell: hadoop-daemon.sh start tasktracker 
+
+- name: tasktracker configured 
+  debug: 
+    msg: "Tasktracker is successfully configured."

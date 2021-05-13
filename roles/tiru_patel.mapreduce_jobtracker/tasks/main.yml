@@ -1,0 +1,21 @@
+---
+# tasks file for mapreduce-jobtracker
+
+- name: configuring jobtracker - mapred-site.xml 
+  template: 
+    src: templates/jt-mapred-site.xml.j2 
+    dest: /etc/hadoop/mapred-site.xml 
+- name: configuring jobtracker - core-site.xml 
+  template: 
+    src: templates/jt-core-site.xml.j2 
+    dest: /etc/hadoop/core-site.xml 
+- name: stop jobtracker service if running 
+  shell: hadoop-daemon.sh stop jobtracker
+  ignore_errors: yes 
+
+- name: start jobtracker service 
+  shell: hadoop-daemon.sh start jobtracker
+
+- name: jobtracker configured 
+  debug: 
+    msg: "Jobtracker successfully configured." 

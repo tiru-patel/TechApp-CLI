@@ -1,0 +1,29 @@
+---
+# vars file for ec2environment
+
+inv_path: "/root/menu/inventory/hdfs-mapred.txt"
+
+aws_access_key: "<Provide your Access Key here>"
+aws_secret_key: "<Provide your Secret Key here>"
+region: "ap-south-1"
+
+# VPC 
+vpc_name: "hdfs-mapred VPC"
+vpc_cidr: "10.0.0.0/16"
+
+# Subnet 
+subnet_name: "subnet1"
+subnet_cidr: "10.0.1.0/24"
+
+# IGW 
+igw_name: "hdfs-mapred IGW"
+route_name: "hdfs-mapred-route"
+sg_name: "hdfs-mapred-sg"
+
+# OS tags 
+nntag: "hdfs-nn"
+dntag: "hdfs-dn"
+dncount: 3
+jttag: "mapred-jt"
+tttag: "mapred-tt"
+ttcount: 3

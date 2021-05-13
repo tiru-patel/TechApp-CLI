@@ -1,0 +1,10 @@
+---
+# vars file for wpSQL
+ 
+db_pod_name: mydb 
+wp_pod_name: mywp
+# DEFAULT VALUES SET IN PLAYBOOK
+root_pass: secretpassword 
+db_name: db1 
+user_name: tirth
+pass: secretpassword

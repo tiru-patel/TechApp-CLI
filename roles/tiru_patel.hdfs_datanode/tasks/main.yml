@@ -1,0 +1,28 @@
+---
+# tasks file for hdfs-datanode
+#
+- name: creating directory in datanode
+  file:
+    state: directory
+    path: "{{ dn_directory_name }}"
+
+- name: configuring datanode - hdfs-site.xml file
+  template:
+    src: templates/dn-hdfs-site.xml.j2
+    dest: /etc/hadoop/hdfs-site.xml
+
+- name: configuring namenode - core-site.xml file
+  template:
+    src: templates/dn-core-site.xml.j2
+    dest: /etc/hadoop/core-site.xml
+
+- name: stop service if already running 
+  shell: hadoop-daemon.sh stop datanode 
+
+- name: starting namenode service
+  shell: hadoop-daemon.sh start datanode
+ 
+- name: datanode configured 
+  debug: 
+    msg: "Datanode successfully configured."
+

@@ -1,0 +1,20 @@
+# ANSIBLE MANAGED BLOCK FOR HADOOP NAME NODE BEGIN
+[hdfsnn]
+65.0.130.151 ansible_user=ec2-user ansible_connection=ssh
+# ANSIBLE MANAGED BLOCK FOR HADOOP NAME NODE END
+# ANSIBLE MANAGED BLOCK FOR HADOOP DATA NODE BEGIN
+[hdfsdn]
+13.233.233.17 ansible_user=ec2-user  ansible_connection=ssh
+13.233.247.67 ansible_user=ec2-user  ansible_connection=ssh
+13.233.204.112 ansible_user=ec2-user  ansible_connection=ssh
+# ANSIBLE MANAGED BLOCK FOR HADOOP DATA NODE END
+# ANSIBLE MANAGED BLOCK FOR HADOOP JOBTRACKER  NODE BEGIN
+[mapredjt]
+15.206.80.253 ansible_user=ec2-user ansible_connection=ssh
+# ANSIBLE MANAGED BLOCK FOR HADOOP JOBTRACKER  NODE END
+# ANSIBLE MANAGED BLOCK FOR HADOOP TASKTRACKER NODE BEGIN
+[mapredtt]
+13.127.87.226 ansible_user=ec2-user ansible_connection=ssh
+3.108.67.24 ansible_user=ec2-user ansible_connection=ssh
+52.66.29.214 ansible_user=ec2-user ansible_connection=ssh
+# ANSIBLE MANAGED BLOCK FOR HADOOP TASKTRACKER NODE END

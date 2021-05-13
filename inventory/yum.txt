@@ -1,0 +1,2 @@
+[yum]
+192.168.101.11 ansible_ssh_user=root ansible_ssh_pass=redhat ansible_connection=ssh

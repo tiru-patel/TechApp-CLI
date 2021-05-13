@@ -1,0 +1,33 @@
+---
+# tasks file for wpSQL
+
+- name: delete everything 
+  shell: kubectl delete all --all 
+
+- name: creating mysql database pod 
+  shell: kubectl run "{{ db_pod_name }}" --image=mysql:5.7 --env=MYSQL_ROOT_PASSWORD=secretpassword --env=MYSQL_DATABASE=db1 --env=MYSQL_USER=tirth --env=MYSQL_PASSWORD=secretpassword
+
+- name: creating wordpress pod 
+  shell: kubectl run "{{ wp_pod_name }}" --image=wordpress:5.1.1-php7.3-apache
+- name: waiting for IP to comeup
+  pause:
+    seconds: 60
+
+- name: getting mysql database IP
+  shell: kubectl get pods -o wide 
+  register: podsIP
+
+- name: expose wordpress pod 
+  shell: kubectl expose pods {{ wp_pod_name }} --type=NodePort --port=80 
+
+- name: get service 
+  shell: kubectl get svc
+  register: service 
+
+- name: printing exposed service 
+  debug: 
+    var: service.stdout_lines 
+
+- name: printing pods IP
+  debug: 
+    var: podsIP.stdout_lines 

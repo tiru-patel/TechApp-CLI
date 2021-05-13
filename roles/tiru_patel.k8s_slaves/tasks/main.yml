@@ -1,0 +1,59 @@
+---
+# tasks file for k8s_slaves
+
+- name: install docker 
+  package: 
+    name: docker 
+    state: present 
+
+- name: start and enable docker service
+  service: 
+    name: docker
+    state: started 
+    enabled: yes 
+ 
+- name: configure yum repo for kubernetes 
+  copy: 
+    src: /root/menu/roles/tiru_patel.k8s_slaves/files/kubernetes.repo 
+    dest: /etc/yum.repos.d/kubernetes.repo 
+ 
+- name: install kubeadm kubelet and kubectl 
+  command: yum install kubeadm kubelet kubectl -y
+
+- name: start and enable kubelet service 
+  service: 
+    name: kubelet 
+    state: started 
+    enabled: yes 
+ 
+- name: configure docker driver 
+  copy: 
+    src: /root/menu/roles/tiru_patel.k8s_slaves/files/daemon.json
+    dest: /etc/docker/daemon.json 
+ 
+- name: restart docker service
+  service: 
+    name: docker
+    state: restarted 
+
+- name: install iproute-tc traffic controller 
+  package:
+    name: iproute-tc 
+    state: present 
+
+- name: configure iptables 
+  copy: 
+    src: /root/menu/roles/tiru_patel.k8s_slaves/files/k8s.conf 
+    dest: /etc/sysctl.d/k8s.conf 
+
+- name: restart service
+  shell: sudo sysctl --system
+  ignore_errors: yes
+
+- name: join slave to master node
+  shell: "{{ master_token }}"
+  ignore_errors: yes 
+  register: masterToken 
+
+- debug:
+    var: masterToken.stdout_lines 
